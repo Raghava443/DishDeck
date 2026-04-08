@@ -122,7 +122,7 @@ async function initDB() {
     if (admins.length === 0) {
         const hashed = await bcrypt.hash('RaghavaP', 10);
         await db.query("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'admin')", ['RaghavaP', 'raghava.p@gmail.com', hashed]);
-        console.log('✅ Admin user created: RaghavaP / raghava.p@gmail.com / RaghavaP');
+        console.log('✅ Admin user provisioned.');
     }
 
     // Seed demo food items
