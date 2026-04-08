@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DishDeck | Login</title>
+    <meta name="description" content="Login or sign up to DishDeck premium restaurant portal">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Outfit',sans-serif;}
+        body{
+            background:url("https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1920&q=80") center/cover no-repeat;
+            min-height:100vh;display:flex;justify-content:center;align-items:center;
+            color:#fff;position:relative;
+        }
+        .overlay{position:fixed;inset:0;background:rgba(5,5,5,0.72);backdrop-filter:blur(6px);z-index:1;}
+
+        .auth-container{
+            position:relative;z-index:2;
+            background:rgba(20,20,20,0.7);
+            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+            border:1px solid rgba(244,196,48,0.18);
+            padding:44px 40px;border-radius:22px;width:400px;
+            box-shadow:0 25px 60px rgba(0,0,0,0.7);text-align:center;
+            animation:slideUp .5s ease-out;
+        }
+        @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+        .brand{margin-bottom:8px;}
+        .brand h1{color:#f4c430;font-size:2.2rem;font-weight:800;letter-spacing:1px;}
+        .brand p{color:#666;font-size:.85rem;margin-top:2px;}
+
+        .divider{border:none;border-top:1px solid rgba(255,255,255,0.07);margin:22px 0;}
+
+        h2#form-title{font-size:1.4rem;font-weight:700;color:#e0e0e0;margin-bottom:24px;}
+
+        .input-group{position:relative;margin-bottom:16px;text-align:left;}
+        .input-group label{display:block;font-size:.82rem;color:#888;font-weight:500;margin-bottom:6px;}
+        .input-group input{
+            width:100%;padding:14px 16px;
+            background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.08);
+            border-radius:12px;color:white;font-size:.97rem;outline:none;transition:.3s;
+            font-family:'Outfit',sans-serif;
+        }
+        .input-group input:focus{border-color:#f4c430;box-shadow:0 0 0 3px rgba(244,196,48,0.12);}
+        .input-group input::placeholder{color:#444;}
+
+        .btn{
+            width:100%;padding:15px;
+            background:linear-gradient(135deg,#f4c430,#ffdc5c);
+            border:none;border-radius:12px;color:#111;font-weight:800;
+            font-size:1rem;cursor:pointer;transition:.3s;margin-top:6px;
+            font-family:'Outfit',sans-serif;text-transform:uppercase;letter-spacing:.5px;
+        }
+        .btn:hover{box-shadow:0 8px 22px rgba(244,196,48,0.4);transform:translateY(-2px);}
+        .btn:active{transform:translateY(0);}
+        .btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+
+        .toggle-text{margin-top:20px;font-size:.88rem;color:#666;}
+        .toggle-text span{color:#f4c430;cursor:pointer;font-weight:700;transition:.2s;}
+        .toggle-text span:hover{text-shadow:0 0 8px rgba(244,196,48,0.5);}
+
+        .error{
+            color:#ff5555;font-size:.85rem;margin-bottom:14px;
+            background:rgba(255,75,75,0.08);padding:10px 14px;border-radius:8px;
+            border:1px solid rgba(255,75,75,0.2);display:none;text-align:left;
+        }
+
+        .back-link{
+            display:block;margin-top:18px;color:#555;font-size:.82rem;
+            text-decoration:none;transition:.2s;
+        }
+        .back-link:hover{color:#f4c430;}
+
+        .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,0.3);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;margin-right:6px;vertical-align:middle;}
+        @keyframes spin{to{transform:rotate(360deg)}}
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+
+    <div class="auth-container">
+        <div class="brand">
+            <h1>DishDeck</h1>
+            <p>Premium Dining Experience</p>
+        </div>
+        <hr class="divider">
+        <h2 id="form-title">Welcome Back</h2>
+        <div class="error" id="error-msg"></div>
+        <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="username" placeholder="Enter your username" autocomplete="username">
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleAuth()">
+        </div>
+        <button class="btn" id="submit-btn" onclick="handleAuth()">Login</button>
+        <p class="toggle-text" id="toggle-text">
+            Don't have an account? <span onclick="toggleMode()">Sign Up</span>
+        </p>
+        <a class="back-link" href="index.html">← Back to Home</a>
+    </div>
+
+    <script src="backend.js"></script>
+    <script>
+        let isLogin = true;
+
+        function toggleMode() {
+            isLogin = !isLogin;
+            document.getElementById('form-title').textContent = isLogin ? 'Welcome Back' : 'Create Account';
+            document.getElementById('submit-btn').textContent = isLogin ? 'Login' : 'Create Account';
+            document.getElementById('toggle-text').innerHTML = isLogin
+                ? `Don't have an account? <span onclick="toggleMode()">Sign Up</span>`
+                : `Already have an account? <span onclick="toggleMode()">Login</span>`;
+            document.getElementById('error-msg').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        async function handleAuth() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorEl = document.getElementById('error-msg');
+            const btn = document.getElementById('submit-btn');
+
+            if(!username || !password) {
+                errorEl.textContent = 'Please fill in all fields.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if(password.length < 4) {
+                errorEl.textContent = 'Password must be at least 4 characters.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            errorEl.style.display = 'none';
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Processing…';
+
+            try {
+                if(isLogin) {
+                    const res = await window.api.login(username, password);
+                    if(res.success) {
+                        window.location.href = res.user.role === 'admin' ? 'admin.html' : 'index.html';
+                    } else {
+                        errorEl.textContent = res.message || 'Invalid credentials.';
+                        errorEl.style.display = 'block';
+                    }
+                } else {
+                    const res = await window.api.register(username, password);
+                    if(res.success) {
+                        window.location.href = 'index.html';
+                    } else {
+                        errorEl.textContent = res.message || 'Registration failed.';
+                        errorEl.style.display = 'block';
+                    }
+                }
+            } catch(e) {
+                errorEl.textContent = 'Connection error. Is the server running?';
+                errorEl.style.display = 'block';
+            }
+
+            btn.disabled = false;
+            btn.textContent = isLogin ? 'Login' : 'Create Account';
+        }
+
+        // Auto-check if user is already logged in
+        (async () => {
+            const res = await window.api.me().catch(() => null);
+            if(res && res.success) {
+                window.location.href = res.user.role === 'admin' ? 'admin.html' : 'index.html';
+            }
+        })();
+    </script>
+</body>
+</html>

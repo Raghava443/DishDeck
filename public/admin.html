@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DishDeck | Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Outfit',sans-serif;}
+        body{background:#0d0d0d;color:#fff;min-height:100vh;}
+        ::-webkit-scrollbar{width:6px;}
+        ::-webkit-scrollbar-track{background:#111;}
+        ::-webkit-scrollbar-thumb{background:#f4c430;border-radius:3px;}
+
+        /* ─── NAVBAR ─── */
+        nav{
+            background:#0a0a0a;padding:16px 36px;
+            display:flex;justify-content:space-between;align-items:center;
+            border-bottom:2px solid rgba(244,196,48,0.3);position:sticky;top:0;z-index:100;
+            backdrop-filter:blur(10px);
+        }
+        .nav-brand{display:flex;align-items:center;gap:10px;}
+        .nav-brand h2{color:#f4c430;font-size:1.7rem;font-weight:800;}
+        .nav-badge{background:#f4c430;color:#000;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700;letter-spacing:.5px;}
+        .nav-right{display:flex;gap:12px;align-items:center;}
+        .nav-user{color:#888;font-size:.9rem;}
+        .nav-user strong{color:#f4c430;}
+        .logout-btn{
+            background:transparent;border:1px solid rgba(244,196,48,0.4);
+            color:#f4c430;padding:8px 20px;border-radius:8px;cursor:pointer;
+            transition:.3s;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:600;
+        }
+        .logout-btn:hover{background:rgba(244,196,48,0.1);border-color:#f4c430;}
+
+        /* ─── LAYOUT ─── */
+        .layout{display:grid;grid-template-columns:240px 1fr;height:calc(100vh - 65px);}
+        
+        /* ─── SIDEBAR ─── */
+        .sidebar{background:#0f0f0f;border-right:1px solid #1e1e1e;padding:24px 16px;overflow-y:auto;}
+        .sidebar-section{margin-bottom:10px;}
+        .sidebar-label{font-size:.72rem;color:#555;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:0 12px;margin-bottom:8px;}
+        .sidebar-item{
+            display:flex;align-items:center;gap:10px;padding:11px 14px;
+            border-radius:10px;cursor:pointer;transition:.25s;color:#888;font-size:.92rem;font-weight:500;
+            margin-bottom:3px;
+        }
+        .sidebar-item:hover{background:#1a1a1a;color:#ccc;}
+        .sidebar-item.active{background:rgba(244,196,48,0.1);color:#f4c430;border:1px solid rgba(244,196,48,0.2);}
+        .sidebar-item span{font-size:1.2rem;}
+
+        /* ─── MAIN CONTENT ─── */
+        .main{overflow-y:auto;padding:32px;}
+        .panel{display:none;}
+        .panel.active{display:block;}
+        
+        .page-header{margin-bottom:28px;}
+        .page-header h2{font-size:1.8rem;font-weight:700;color:#f4c430;margin-bottom:4px;}
+        .page-header p{color:#666;font-size:.9rem;}
+
+        /* ─── CARDS / BOXES ─── */
+        .box{background:#141414;border:1px solid #1e1e1e;border-radius:16px;padding:28px;margin-bottom:24px;}
+        .box h3{color:#f4c430;font-size:1.1rem;font-weight:700;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #1e1e1e;}
+
+        /* ─── FORM ─── */
+        .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+        .form-group{margin-bottom:16px;}
+        .form-group label{display:block;margin-bottom:7px;color:#aaa;font-size:.88rem;font-weight:500;}
+        .form-group input,.form-group select{
+            width:100%;padding:12px 14px;background:#1a1a1a;
+            border:1px solid #2a2a2a;color:white;border-radius:10px;
+            outline:none;transition:.3s;font-family:'Outfit',sans-serif;font-size:.92rem;
+        }
+        .form-group input:focus,.form-group select:focus{border-color:#f4c430;box-shadow:0 0 0 3px rgba(244,196,48,0.08);}
+        .form-group select option{background:#1a1a1a;}
+        .full-span{grid-column:1/-1;}
+        .preview-wrap{display:flex;gap:16px;align-items:flex-start;margin-top:8px;}
+        .preview-img{width:100px;height:100px;object-fit:cover;border-radius:10px;border:2px solid #2a2a2a;display:none;}
+
+        .btn-primary{
+            background:linear-gradient(135deg,#f4c430,#ffdc5c);color:#000;font-weight:700;
+            padding:13px 28px;border:none;border-radius:10px;cursor:pointer;
+            transition:.3s;font-family:'Outfit',sans-serif;font-size:.95rem;
+        }
+        .btn-primary:hover{box-shadow:0 6px 20px rgba(244,196,48,0.35);transform:translateY(-1px);}
+        .btn-danger{
+            background:transparent;border:1px solid rgba(255,75,75,0.4);color:#ff4c4c;
+            padding:6px 14px;border-radius:7px;cursor:pointer;transition:.3s;
+            font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:600;
+        }
+        .btn-danger:hover{background:rgba(255,75,75,0.1);border-color:#ff4c4c;}
+        .msg-bar{margin-top:14px;font-size:.9rem;min-height:22px;}
+        .msg-bar.success{color:#4cff88;}
+        .msg-bar.error{color:#ff5555;}
+
+        /* ─── FOOD ITEM TABLE ─── */
+        .food-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+        .food-item-card{
+            background:#1a1a1a;border-radius:14px;overflow:hidden;
+            border:1px solid #252525;transition:.25s;
+        }
+        .food-item-card:hover{border-color:rgba(244,196,48,0.25);}
+        .food-item-card img{width:100%;height:140px;object-fit:cover;}
+        .food-item-card-body{padding:14px;}
+        .food-item-card-body h4{font-size:.95rem;font-weight:600;margin-bottom:4px;}
+        .food-item-card-body .cat-badge{
+            font-size:.72rem;background:rgba(244,196,48,0.1);color:#f4c430;
+            padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:6px;font-weight:600;
+        }
+        .food-item-card-body .price-tag{color:#f4c430;font-weight:700;font-size:1rem;margin-bottom:10px;}
+        
+        /* ─── DATA TABLES ─── */
+        .data-table-wrap{overflow-x:auto;}
+        .data-table{width:100%;border-collapse:collapse;font-size:.88rem;}
+        .data-table th{background:#1a1a1a;padding:12px 14px;text-align:left;color:#f4c430;font-weight:600;border-bottom:2px solid #252525;}
+        .data-table td{padding:11px 14px;border-bottom:1px solid #1a1a1a;color:#ccc;vertical-align:top;}
+        .data-table tr:hover td{background:#161616;}
+        .data-table tr:last-child td{border-bottom:none;}
+        .badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700;}
+        .badge-green{background:rgba(76,255,136,0.12);color:#4cff88;}
+        .badge-yellow{background:rgba(244,196,48,0.12);color:#f4c430;}
+        .badge-blue{background:rgba(100,180,255,0.12);color:#64b4ff;}
+        .badge-red{background:rgba(255,75,75,0.12);color:#ff4c4c;}
+        .items-list{font-size:.8rem;line-height:1.7;max-width:220px;}
+
+        /* ─── STATS ─── */
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:28px;}
+        .stat-card{
+            background:linear-gradient(135deg,#1a1a1a,#141414);
+            border-radius:14px;padding:22px;border:1px solid #222;
+        }
+        .stat-icon{font-size:2rem;margin-bottom:8px;}
+        .stat-val{font-size:2rem;font-weight:800;color:#f4c430;margin-bottom:2px;}
+        .stat-label{color:#666;font-size:.8rem;font-weight:500;}
+
+        .empty-state{text-align:center;padding:60px 20px;color:#444;}
+        .empty-state span{font-size:3rem;display:block;margin-bottom:12px;}
+        .empty-state p{font-size:1rem;}
+
+        /* ─── TOAST ─── */
+        .toast{
+            position:fixed;bottom:30px;right:30px;z-index:9999;
+            background:#1e1e1e;border:1px solid rgba(244,196,48,0.3);
+            border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:12px;
+            transform:translateY(100px);opacity:0;transition:.4s;box-shadow:0 10px 30px rgba(0,0,0,0.6);
+        }
+        .toast.show{transform:translateY(0);opacity:1;}
+        .toast-icon{font-size:1.5rem;}
+        .toast-text h4{font-size:.9rem;font-weight:700;margin-bottom:2px;}
+        .toast-text p{font-size:.8rem;color:#999;}
+    </style>
+</head>
+<body>
+
+<!-- ═══ NAVBAR ══════════════════════════════════════════════════ -->
+<nav>
+    <div class="nav-brand">
+        <h2>DishDeck</h2>
+        <span class="nav-badge">ADMIN</span>
+    </div>
+    <div class="nav-right">
+        <span class="nav-user">Logged in as <strong id="adminUsername">Admin</strong></span>
+        <a href="index.html" style="color:#888;text-decoration:none;font-size:.9rem;padding:8px 14px;border-radius:8px;transition:.2s;" onmouseover="this.style.color='#f4c430'" onmouseout="this.style.color='#888'">← View Site</a>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</nav>
+
+<!-- ═══ LAYOUT ═════════════════════════════════════════════════ -->
+<div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-label">Dashboard</div>
+            <div class="sidebar-item active" onclick="showPanel('overview')" id="tab-overview">
+                <span>📊</span> Overview
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Food Management</div>
+            <div class="sidebar-item" onclick="showPanel('add-food')" id="tab-add-food">
+                <span>➕</span> Add Food Item
+            </div>
+            <div class="sidebar-item" onclick="showPanel('manage-food')" id="tab-manage-food">
+                <span>🍽️</span> Manage Items
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Orders & Bookings</div>
+            <div class="sidebar-item" onclick="showPanel('orders')" id="tab-orders">
+                <span>📦</span> Orders
+            </div>
+            <div class="sidebar-item" onclick="showPanel('table-bookings')" id="tab-table-bookings">
+                <span>🍽️</span> Table Bookings
+            </div>
+            <div class="sidebar-item" onclick="showPanel('room-bookings')" id="tab-room-bookings">
+                <span>🎉</span> Room Bookings
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- ── OVERVIEW PANEL ── -->
+        <div class="panel active" id="panel-overview">
+            <div class="page-header">
+                <h2>Dashboard Overview</h2>
+                <p>Real-time stats for your restaurant</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🍽️</div>
+                    <div class="stat-val" id="stat-food">—</div>
+                    <div class="stat-label">Food Items</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-val" id="stat-orders">—</div>
+                    <div class="stat-label">Total Orders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🪑</div>
+                    <div class="stat-val" id="stat-tables">—</div>
+                    <div class="stat-label">Table Bookings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎉</div>
+                    <div class="stat-val" id="stat-rooms">—</div>
+                    <div class="stat-label">Room Bookings</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── ADD FOOD PANEL ── -->
+        <div class="panel" id="panel-add-food">
+            <div class="page-header">
+                <h2>Add New Food Item</h2>
+                <p>Upload a photo and set pricing to add items to the menu</p>
+            </div>
+            <div class="box">
+                <h3>Item Details</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Item Name</label>
+                        <input type="text" id="foodName" placeholder="e.g. Butter Chicken">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="foodCat">
+                            <option value="starters">Starters</option>
+                            <option value="main">Main Course</option>
+                            <option value="desserts">Desserts</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Price (₹)</label>
+                        <input type="number" id="foodPrice" placeholder="e.g. 350" min="1">
+                    </div>
+                    <div class="form-group full-span">
+                        <label>Food Photo</label>
+                        <input type="file" id="foodImage" accept="image/*" onchange="previewImage(event)">
+                        <div class="preview-wrap">
+                            <img id="imgPreview" class="preview-img" alt="Preview">
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="addItem()">➕ Add to Menu</button>
+                <div class="msg-bar" id="addMsg"></div>
+            </div>
+        </div>
+
+        <!-- ── MANAGE FOOD PANEL ── -->
+        <div class="panel" id="panel-manage-food">
+            <div class="page-header">
+                <h2>Manage Food Items</h2>
+                <p>View and remove items from the menu</p>
+            </div>
+            <div class="box">
+                <h3>Current Menu Items</h3>
+                <div class="food-grid" id="foodGrid">
+                    <div class="empty-state"><span>🍽️</span><p>Loading items…</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── ORDERS PANEL ── -->
+        <div class="panel" id="panel-orders">
+            <div class="page-header">
+                <h2>Orders</h2>
+                <p>All customer orders placed via the site</p>
+            </div>
+            <div class="box">
+                <h3>Order History</h3>
+                <div class="data-table-wrap" id="ordersTable">
+                    <div class="empty-state"><span>📦</span><p>Loading orders…</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── TABLE BOOKINGS PANEL ── -->
+        <div class="panel" id="panel-table-bookings">
+            <div class="page-header">
+                <h2>Table Bookings</h2>
+                <p>All table reservation requests</p>
+            </div>
+            <div class="box">
+                <h3>Upcoming & Past Reservations</h3>
+                <div class="data-table-wrap" id="tableBookingsTable">
+                    <div class="empty-state"><span>🪑</span><p>Loading bookings…</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── ROOM BOOKINGS PANEL ── -->
+        <div class="panel" id="panel-room-bookings">
+            <div class="page-header">
+                <h2>Room / Event Bookings</h2>
+                <p>All event room reservations</p>
+            </div>
+            <div class="box">
+                <h3>Event Bookings</h3>
+                <div class="data-table-wrap" id="roomBookingsTable">
+                    <div class="empty-state"><span>🎉</span><p>Loading bookings…</p></div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+    <div class="toast-icon" id="toastIcon">✅</div>
+    <div class="toast-text">
+        <h4 id="toastTitle"></h4>
+        <p id="toastMsg"></p>
+    </div>
+</div>
+
+<script src="backend.js"></script>
+<script>
+// ─── AUTH CHECK ────────────────────────────────────────────────────
+let adminUser = null;
+
+async function init() {
+    const meRes = await window.api.me();
+    if(!meRes.success || meRes.user.role !== 'admin') {
+        window.location.href = 'index.html';
+        return;
+    }
+    adminUser = meRes.user;
+    document.getElementById('adminUsername').textContent = adminUser.username;
+    loadOverview();
+}
+
+async function logout() {
+    await window.api.logout();
+    window.location.href = 'login.html';
+}
+
+// ─── PANEL NAV ─────────────────────────────────────────────────────
+function showPanel(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    document.getElementById('tab-' + name).classList.add('active');
+
+    if(name === 'overview') loadOverview();
+    if(name === 'manage-food') loadFoodGrid();
+    if(name === 'orders') loadOrders();
+    if(name === 'table-bookings') loadTableBookings();
+    if(name === 'room-bookings') loadRoomBookings();
+}
+
+// ─── OVERVIEW ──────────────────────────────────────────────────────
+async function loadOverview() {
+    const [foods, orders, tables, rooms] = await Promise.all([
+        window.api.getFoodItems(),
+        window.api.getOrders(),
+        window.api.getTableBookings(),
+        window.api.getRoomBookings()
+    ]);
+    document.getElementById('stat-food').textContent = foods.length;
+    document.getElementById('stat-orders').textContent = (orders.orders || []).length;
+    document.getElementById('stat-tables').textContent = (tables.bookings || []).length;
+    document.getElementById('stat-rooms').textContent = (rooms.bookings || []).length;
+}
+
+// ─── ADD FOOD ──────────────────────────────────────────────────────
+let imageFile = null;
+
+function previewImage(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+    imageFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const img = document.getElementById('imgPreview');
+        img.src = e.target.result;
+        img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+async function addItem() {
+    const name = document.getElementById('foodName').value.trim();
+    const category = document.getElementById('foodCat').value;
+    const price = document.getElementById('foodPrice').value.trim();
+    const msgEl = document.getElementById('addMsg');
+
+    if(!name || !price || !imageFile) {
+        msgEl.textContent = 'Please fill all fields and upload an image.';
+        msgEl.className = 'msg-bar error';
+        return;
+    }
+
+    msgEl.textContent = 'Uploading…';
+    msgEl.className = 'msg-bar';
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('category', category);
+    formData.append('price', price);
+    formData.append('image', imageFile);
+
+    const res = await window.api.addFoodItem(formData);
+    if(res.success) {
+        msgEl.textContent = '✅ "' + name + '" added to menu!';
+        msgEl.className = 'msg-bar success';
+        document.getElementById('foodName').value = '';
+        document.getElementById('foodPrice').value = '';
+        document.getElementById('foodImage').value = '';
+        document.getElementById('imgPreview').style.display = 'none';
+        imageFile = null;
+        showToast('✅', 'Item Added!', name + ' is now visible on the menu.');
+    } else {
+        msgEl.textContent = res.message || 'Error adding item.';
+        msgEl.className = 'msg-bar error';
+    }
+}
+
+// ─── MANAGE FOOD ───────────────────────────────────────────────────
+async function loadFoodGrid() {
+    const items = await window.api.getFoodItems();
+    const grid = document.getElementById('foodGrid');
+    if(items.length === 0) { grid.innerHTML = '<div class="empty-state"><span>🍽️</span><p>No items yet.</p></div>'; return; }
+    grid.innerHTML = items.map(item => `
+        <div class="food-item-card">
+            <img src="${item.image}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=300&q=60'">
+            <div class="food-item-card-body">
+                <div class="cat-badge">${item.category}</div>
+                <h4>${item.name}</h4>
+                <div class="price-tag">₹${item.price}</div>
+                <button class="btn-danger" onclick="deleteItem(${item.id}, '${item.name}')">🗑 Remove</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function deleteItem(id, name) {
+    if(!confirm(`Remove "${name}" from the menu?`)) return;
+    const res = await window.api.deleteFoodItem(id);
+    if(res.success) {
+        showToast('🗑️', 'Item Removed', name + ' has been removed.');
+        loadFoodGrid();
+    } else {
+        showToast('❌', 'Error', res.message || 'Could not remove item.');
+    }
+}
+
+// ─── ORDERS ────────────────────────────────────────────────────────
+async function loadOrders() {
+    const data = await window.api.getOrders();
+    const orders = data.orders || [];
+    const el = document.getElementById('ordersTable');
+    if(orders.length === 0) { el.innerHTML = '<div class="empty-state"><span>📦</span><p>No orders yet.</p></div>'; return; }
+    el.innerHTML = `
+        <table class="data-table">
+            <thead><tr>
+                <th>#</th><th>Customer</th><th>Items</th>
+                <th>Total</th><th>Payment</th><th>Status</th><th>Placed</th>
+            </tr></thead>
+            <tbody>
+                ${orders.map((o, i) => {
+                    const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items;
+                    const itemList = items.map(it => `${it.name} ×${it.qty}`).join(', ');
+                    const payLabel = o.payment_method === 'cod' ? '💵 COD' : o.payment_method === 'upi' ? '📱 UPI' : '💳 Card';
+                    const statusBadge = o.status === 'pending' ? 'badge-yellow' : 'badge-green';
+                    return `<tr>
+                        <td>#${o.id}</td>
+                        <td>${o.username || '—'}</td>
+                        <td><div class="items-list">${itemList}</div></td>
+                        <td><strong style="color:#f4c430">₹${o.total}</strong></td>
+                        <td>${payLabel}</td>
+                        <td><span class="badge ${statusBadge}">${o.status}</span></td>
+                        <td>${new Date(o.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</td>
+                    </tr>`;
+                }).join('')}
+            </tbody>
+        </table>`;
+}
+
+// ─── TABLE BOOKINGS ────────────────────────────────────────────────
+async function loadTableBookings() {
+    const data = await window.api.getTableBookings();
+    const bookings = data.bookings || [];
+    const el = document.getElementById('tableBookingsTable');
+    if(bookings.length === 0) { el.innerHTML = '<div class="empty-state"><span>🪑</span><p>No table bookings yet.</p></div>'; return; }
+    el.innerHTML = `
+        <table class="data-table">
+            <thead><tr>
+                <th>#</th><th>Customer</th><th>Date</th><th>Time</th>
+                <th>Guests</th><th>Special Req.</th><th>Status</th><th>Booked At</th>
+            </tr></thead>
+            <tbody>
+                ${bookings.map(b => `<tr>
+                    <td>#${b.id}</td>
+                    <td>${b.username || '—'}</td>
+                    <td>${new Date(b.booking_date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</td>
+                    <td>${b.booking_time}</td>
+                    <td>${b.guests}</td>
+                    <td style="color:#888;max-width:180px">${b.special_req || '—'}</td>
+                    <td><span class="badge badge-green">${b.status}</span></td>
+                    <td>${new Date(b.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+}
+
+// ─── ROOM BOOKINGS ─────────────────────────────────────────────────
+async function loadRoomBookings() {
+    const data = await window.api.getRoomBookings();
+    const bookings = data.bookings || [];
+    const el = document.getElementById('roomBookingsTable');
+    if(bookings.length === 0) { el.innerHTML = '<div class="empty-state"><span>🎉</span><p>No room bookings yet.</p></div>'; return; }
+    el.innerHTML = `
+        <table class="data-table">
+            <thead><tr>
+                <th>#</th><th>Customer</th><th>Event</th><th>Room</th>
+                <th>Date</th><th>Time</th><th>Guests</th><th>Req.</th><th>Booked At</th>
+            </tr></thead>
+            <tbody>
+                ${bookings.map(b => `<tr>
+                    <td>#${b.id}</td>
+                    <td>${b.username || '—'}</td>
+                    <td><span class="badge badge-blue">${b.event_type}</span></td>
+                    <td>${b.room_name || '—'}</td>
+                    <td>${new Date(b.booking_date).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</td>
+                    <td>${b.booking_time}</td>
+                    <td>${b.guests}</td>
+                    <td style="color:#888;max-width:160px">${b.special_req || '—'}</td>
+                    <td>${new Date(b.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+}
+
+// ─── TOAST ─────────────────────────────────────────────────────────
+function showToast(icon, title, msg) {
+    document.getElementById('toastIcon').textContent = icon;
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastMsg').textContent = msg;
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
