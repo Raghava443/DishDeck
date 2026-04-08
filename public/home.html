@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DishDeck | Premium Dining Experience</title>
+<meta name="description" content="DishDeck – book tables, reserve event rooms, and order premium food online.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Outfit',sans-serif;}
+html{scroll-behavior:smooth;}
+body{background:#0d0d0d;color:#fff;overflow-x:hidden;}
+
+/* ─── SCROLLBAR ─────────────────── */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:#111;}
+::-webkit-scrollbar-thumb{background:#f4c430;border-radius:3px;}
+
+/* ─── NAVBAR ────────────────────── */
+nav{
+    position:fixed;top:0;width:100%;
+    background:rgba(10,10,10,0.92);padding:14px 40px;
+    display:flex;justify-content:space-between;align-items:center;
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    z-index:1000;border-bottom:1px solid rgba(244,196,48,0.15);
+}
+.nav-brand{display:flex;align-items:center;gap:10px;}
+.nav-brand h2{color:#f4c430;font-size:1.9rem;font-weight:800;letter-spacing:1px;}
+.nav-brand span{font-size:.75rem;background:#f4c430;color:#000;padding:2px 8px;border-radius:20px;font-weight:700;letter-spacing:1px;}
+nav ul{list-style:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+nav ul li a{text-decoration:none;color:#ccc;font-weight:500;padding:6px 12px;border-radius:8px;transition:.3s;}
+nav ul li a:hover{color:#f4c430;background:rgba(244,196,48,0.08);}
+
+.btn-auth{background:#f4c430;border:none;padding:9px 22px;color:#111;border-radius:20px;cursor:pointer;font-weight:700;transition:.3s;font-family:'Outfit',sans-serif;font-size:.95rem;}
+.btn-auth:hover{background:#ffdc5c;box-shadow:0 0 15px rgba(244,196,48,0.5);}
+
+/* Cart button */
+#cartBtn{
+    position:relative;background:transparent;border:1px solid rgba(244,196,48,0.4);
+    padding:8px 18px;color:#f4c430;border-radius:20px;cursor:pointer;
+    font-weight:600;font-family:'Outfit',sans-serif;font-size:.95rem;transition:.3s;
+    display:flex;align-items:center;gap:8px;
+}
+#cartBtn:hover{background:rgba(244,196,48,0.1);border-color:#f4c430;}
+.cart-count{
+    background:#f4c430;color:#000;width:20px;height:20px;
+    border-radius:50%;font-size:.75rem;font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+}
+
+/* ─── HERO ──────────────────────── */
+.hero{
+    height:100vh;
+    background:url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=80") center/cover no-repeat;
+    display:flex;justify-content:center;align-items:center;
+    text-align:center;position:relative;
+}
+.hero::after{
+    content:"";position:absolute;top:0;left:0;width:100%;height:100%;
+    background:linear-gradient(160deg,rgba(0,0,0,0.82) 0%,rgba(0,0,0,0.4) 100%);
+}
+.hero-content{position:relative;z-index:1;animation:fadeUp 1.2s ease-out;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+.hero h1{font-size:5rem;font-weight:800;color:#f4c430;line-height:1.1;margin-bottom:18px;text-shadow:0 4px 20px rgba(0,0,0,0.8);}
+.hero p{font-size:1.4rem;color:#ddd;font-weight:300;margin-bottom:32px;}
+.hero-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+.hero-btn-primary{background:#f4c430;color:#000;padding:14px 36px;border:none;border-radius:30px;font-size:1.05rem;font-weight:700;cursor:pointer;transition:.3s;font-family:'Outfit',sans-serif;}
+.hero-btn-primary:hover{background:#ffdc5c;box-shadow:0 0 25px rgba(244,196,48,0.6);transform:translateY(-2px);}
+.hero-btn-outline{background:transparent;color:#fff;padding:14px 36px;border:2px solid rgba(255,255,255,0.4);border-radius:30px;font-size:1.05rem;font-weight:600;cursor:pointer;transition:.3s;font-family:'Outfit',sans-serif;}
+.hero-btn-outline:hover{border-color:#f4c430;color:#f4c430;transform:translateY(-2px);}
+
+/* ─── SECTIONS ─────────────────── */
+section{padding:90px 40px;text-align:center;}
+.section-title{font-size:2.6rem;color:#f4c430;margin-bottom:50px;position:relative;display:inline-block;font-weight:700;}
+.section-title::after{content:"";position:absolute;width:60%;height:3px;background:linear-gradient(90deg,#f4c430,transparent);bottom:-12px;left:20%;border-radius:2px;}
+.section-sub{color:#888;margin-top:8px;font-size:1rem;margin-bottom:50px;}
+
+/* ─── MENU GRID ─────────────────── */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:28px;max-width:1200px;margin:0 auto;}
+.card{
+    background:#1a1a1a;border-radius:18px;overflow:hidden;
+    box-shadow:0 8px 30px rgba(0,0,0,0.5);border:1px solid #272727;
+    transition:.4s;position:relative;opacity:0;transform:translateY(30px);
+}
+.card.show{opacity:1;transform:translateY(0);}
+.card:hover{transform:translateY(-10px);border-color:rgba(244,196,48,0.4);box-shadow:0 20px 45px rgba(244,196,48,0.15);}
+.card img{width:100%;height:200px;object-fit:cover;transition:.5s;}
+.card:hover img{transform:scale(1.06);}
+.card-content{padding:20px;text-align:left;}
+.card h3{margin-bottom:6px;font-size:1.25rem;font-weight:600;}
+.card .price{font-weight:700;color:#f4c430;font-size:1.3rem;margin-bottom:14px;}
+.add-cart-btn{
+    width:100%;padding:11px;background:transparent;color:#f4c430;
+    border:1px solid rgba(244,196,48,0.5);border-radius:10px;
+    font-weight:600;cursor:pointer;transition:.3s;font-family:'Outfit',sans-serif;font-size:.95rem;
+}
+.add-cart-btn:hover{background:#f4c430;color:#000;box-shadow:0 5px 15px rgba(244,196,48,0.3);}
+.add-cart-btn.added{background:rgba(244,196,48,0.15);border-color:#f4c430;}
+
+/* ─── CART DRAWER ───────────────── */
+.cart-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.7);
+    z-index:3000;opacity:0;visibility:hidden;transition:.3s;
+}
+.cart-overlay.active{opacity:1;visibility:visible;}
+.cart-drawer{
+    position:fixed;right:0;top:0;height:100%;width:420px;
+    background:#141414;z-index:3001;
+    transform:translateX(100%);transition:.4s cubic-bezier(.22,.61,.36,1);
+    display:flex;flex-direction:column;
+    box-shadow:-20px 0 60px rgba(0,0,0,0.8);
+    border-left:1px solid rgba(244,196,48,0.15);
+}
+.cart-overlay.active .cart-drawer{transform:translateX(0);}
+.cart-header{
+    padding:24px;border-bottom:1px solid #252525;
+    display:flex;justify-content:space-between;align-items:center;
+}
+.cart-header h3{color:#f4c430;font-size:1.4rem;font-weight:700;}
+.cart-close{background:none;border:none;color:#aaa;font-size:1.6rem;cursor:pointer;transition:.2s;line-height:1;}
+.cart-close:hover{color:#f4c430;}
+.cart-items{flex:1;overflow-y:auto;padding:16px;}
+.cart-empty{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    height:100%;color:#555;gap:12px;
+}
+.cart-empty span{font-size:3.5rem;}
+.cart-empty p{font-size:1.1rem;}
+.cart-item{
+    background:#1e1e1e;border-radius:12px;padding:14px;margin-bottom:12px;
+    display:flex;gap:12px;align-items:center;border:1px solid #2a2a2a;transition:.2s;
+}
+.cart-item:hover{border-color:rgba(244,196,48,0.2);}
+.cart-item img{width:65px;height:65px;object-fit:cover;border-radius:8px;flex-shrink:0;}
+.cart-item-info{flex:1;}
+.cart-item-name{font-weight:600;font-size:.95rem;margin-bottom:4px;}
+.cart-item-price{color:#f4c430;font-weight:700;font-size:.95rem;}
+.cart-item-controls{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.qty-btn{
+    background:#2a2a2a;border:none;color:#fff;width:28px;height:28px;
+    border-radius:6px;cursor:pointer;font-size:1rem;transition:.2s;
+}
+.qty-btn:hover{background:#f4c430;color:#000;}
+.qty-num{font-weight:700;min-width:20px;text-align:center;}
+.remove-btn{background:none;border:none;color:#ff5555;cursor:pointer;font-size:1.1rem;margin-left:auto;transition:.2s;}
+.remove-btn:hover{color:#ff3333;transform:scale(1.1);}
+.cart-footer{padding:20px 24px;border-top:1px solid #252525;}
+.cart-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.cart-total span:first-child{color:#aaa;font-size:1rem;}
+.cart-total .total-val{color:#f4c430;font-size:1.5rem;font-weight:800;}
+.checkout-cart-btn{
+    width:100%;padding:15px;background:linear-gradient(135deg,#f4c430,#ffdc5c);
+    color:#000;border:none;border-radius:12px;font-size:1.05rem;font-weight:700;
+    cursor:pointer;transition:.3s;font-family:'Outfit',sans-serif;
+}
+.checkout-cart-btn:hover{box-shadow:0 8px 25px rgba(244,196,48,0.4);transform:translateY(-1px);}
+.checkout-cart-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+/* ─── BOOKING SECTIONS ─────────────── */
+.booking-section{background:#0f0f0f;}
+.booking-section-rooms{background:#0a0a0a;}
+
+.booking-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:40px;
+    max-width:1100px;margin:0 auto;align-items:start;
+}
+@media(max-width:900px){.booking-grid{grid-template-columns:1fr;}}
+
+.booking-card{
+    background:#1a1a1a;border-radius:20px;padding:36px;
+    border:1px solid #252525;box-shadow:0 15px 40px rgba(0,0,0,0.5);
+}
+.booking-card h3{color:#f4c430;font-size:1.4rem;font-weight:700;margin-bottom:8px;}
+.booking-card .bc-sub{color:#777;font-size:.9rem;margin-bottom:24px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-group{margin-bottom:18px;}
+.form-group label{display:block;margin-bottom:7px;color:#bbb;font-size:.9rem;font-weight:500;}
+.form-group input,.form-group select,.form-group textarea{
+    width:100%;padding:13px 16px;
+    background:#111;border:1px solid #333;color:white;
+    border-radius:10px;outline:none;transition:.3s;
+    font-family:'Outfit',sans-serif;font-size:.95rem;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+    border-color:#f4c430;box-shadow:0 0 0 3px rgba(244,196,48,0.1);
+}
+.form-group select option{background:#1a1a1a;}
+.form-group textarea{resize:vertical;min-height:80px;}
+.booking-img{border-radius:20px;overflow:hidden;position:relative;}
+.booking-img img{width:100%;height:100%;object-fit:cover;min-height:360px;border-radius:20px;display:block;}
+.booking-img-badge{
+    position:absolute;bottom:20px;left:20px;
+    background:rgba(10,10,10,0.85);backdrop-filter:blur(8px);
+    padding:10px 18px;border-radius:12px;border:1px solid rgba(244,196,48,0.3);
+}
+.booking-img-badge h4{color:#f4c430;font-size:1rem;font-weight:700;}
+.booking-img-badge p{color:#aaa;font-size:.8rem;}
+
+/* Rooms grid */
+.rooms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px;max-width:1200px;margin:0 auto 50px;}
+.room-card{
+    background:#1a1a1a;border-radius:18px;overflow:hidden;
+    border:1px solid #252525;cursor:pointer;transition:.35s;
+    box-shadow:0 8px 25px rgba(0,0,0,0.4);
+}
+.room-card:hover{border-color:rgba(244,196,48,0.4);transform:translateY(-8px);box-shadow:0 20px 40px rgba(244,196,48,0.1);}
+.room-card.selected{border-color:#f4c430;box-shadow:0 0 0 2px rgba(244,196,48,0.4);}
+.room-card img{width:100%;height:180px;object-fit:cover;transition:.4s;}
+.room-card:hover img,.room-card.selected img{transform:scale(1.04);}
+.room-card-body{padding:16px;}
+.room-card-body h4{font-size:1.1rem;font-weight:600;margin-bottom:6px;}
+.room-card-body p{font-size:.85rem;color:#888;margin-bottom:8px;}
+.room-capacity{display:inline-flex;align-items:center;gap:5px;color:#f4c430;font-size:.85rem;font-weight:600;}
+.room-card.selected .room-card-body h4::after{content:" ✓";color:#f4c430;}
+
+.book-btn{
+    width:100%;padding:14px;background:linear-gradient(135deg,#f4c430,#e6a800);
+    color:#000;border:none;border-radius:10px;font-weight:700;cursor:pointer;
+    transition:.3s;font-family:'Outfit',sans-serif;font-size:1rem;
+}
+.book-btn:hover{box-shadow:0 8px 25px rgba(244,196,48,0.35);transform:translateY(-1px);}
+.book-msg{margin-top:14px;text-align:center;font-size:.95rem;min-height:24px;}
+.book-msg.success{color:#4cff88;}
+.book-msg.error{color:#ff5555;}
+
+/* ─── CHECKOUT MODAL ────────────── */
+.modal-overlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);
+    display:flex;justify-content:center;align-items:center;
+    z-index:4000;opacity:0;visibility:hidden;transition:.3s;
+    padding:20px;
+}
+.modal-overlay.active{opacity:1;visibility:visible;}
+.checkout-box{
+    background:#141414;width:100%;max-width:480px;padding:36px;border-radius:20px;
+    border:1px solid rgba(244,196,48,0.2);
+    transform:translateY(-40px);transition:.4s;
+    max-height:90vh;overflow-y:auto;position:relative;
+}
+.modal-overlay.active .checkout-box{transform:translateY(0);}
+.close-modal{
+    position:absolute;top:16px;right:20px;
+    background:none;border:none;color:#888;font-size:1.8rem;cursor:pointer;line-height:1;transition:.2s;
+}
+.close-modal:hover{color:#f4c430;}
+.checkout-box h3{color:#f4c430;font-size:1.5rem;font-weight:700;margin-bottom:6px;}
+.checkout-sub{color:#777;font-size:.9rem;margin-bottom:24px;}
+
+.cart-summary{
+    background:#1a1a1a;border-radius:12px;padding:16px;margin-bottom:22px;
+    border:1px solid #252525;max-height:180px;overflow-y:auto;
+}
+.cart-summary-item{display:flex;justify-content:space-between;font-size:.9rem;padding:5px 0;border-bottom:1px solid #222;}
+.cart-summary-item:last-child{border-bottom:none;}
+.cart-summary-total{
+    display:flex;justify-content:space-between;padding-top:12px;margin-top:8px;
+    border-top:1px solid #333;font-weight:700;color:#f4c430;
+}
+
+/* Payment methods */
+.payment-methods{margin-bottom:22px;}
+.payment-methods label{display:block;color:#bbb;font-size:.9rem;margin-bottom:10px;font-weight:500;}
+.pay-options{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.pay-opt{
+    background:#1a1a1a;border:2px solid #2a2a2a;border-radius:12px;
+    padding:14px 8px;cursor:pointer;text-align:center;transition:.3s;
+}
+.pay-opt:hover{border-color:rgba(244,196,48,0.4);}
+.pay-opt.active{border-color:#f4c430;background:rgba(244,196,48,0.08);}
+.pay-opt span{display:block;font-size:1.5rem;margin-bottom:5px;}
+.pay-opt p{font-size:.8rem;font-weight:600;color:#ccc;}
+.pay-opt.active p{color:#f4c430;}
+
+.pay-fields{display:none;}
+.pay-fields.visible{display:block;}
+.pay-field-input{
+    width:100%;padding:13px;background:#111;border:1px solid #333;color:white;
+    border-radius:10px;outline:none;margin-bottom:12px;
+    font-family:'Outfit',sans-serif;font-size:.95rem;transition:.3s;
+}
+.pay-field-input:focus{border-color:#f4c430;}
+.pay-field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cod-notice{
+    background:rgba(244,196,48,0.07);border:1px solid rgba(244,196,48,0.2);
+    border-radius:10px;padding:14px;color:#ccc;font-size:.9rem;line-height:1.6;
+}
+.cod-notice strong{color:#f4c430;}
+
+.pay-now-btn{
+    width:100%;padding:16px;background:linear-gradient(135deg,#f4c430,#ffdc5c);
+    color:#000;font-weight:800;border:none;border-radius:12px;
+    cursor:pointer;font-family:'Outfit',sans-serif;font-size:1.05rem;transition:.3s;
+}
+.pay-now-btn:hover{box-shadow:0 8px 25px rgba(244,196,48,0.4);transform:translateY(-1px);}
+
+/* ─── SUCCESS TOAST ─────────────── */
+.toast{
+    position:fixed;bottom:30px;right:30px;z-index:9999;
+    background:#1e1e1e;border:1px solid rgba(244,196,48,0.3);
+    border-radius:14px;padding:16px 22px;
+    display:flex;align-items:center;gap:14px;
+    transform:translateY(100px);opacity:0;transition:.4s;
+    box-shadow:0 10px 30px rgba(0,0,0,0.6);max-width:360px;
+}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast-icon{font-size:1.8rem;}
+.toast-text h4{font-size:.95rem;font-weight:700;margin-bottom:2px;}
+.toast-text p{font-size:.82rem;color:#999;}
+
+/* ─── FOOTER ────────────────────── */
+footer{
+    background:#080808;color:#555;text-align:center;padding:40px;
+    border-top:1px solid #1a1a1a;
+}
+footer .footer-brand{color:#f4c430;font-size:1.4rem;font-weight:700;margin-bottom:10px;}
+footer p{font-size:.9rem;}
+
+/* ─── ADMIN LINK HIGHLIGHT ─────── */
+#adminPath a{color:#ff6b6b!important;font-weight:600;}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAVBAR ══════════════════════════════════════════════════════ -->
+<nav>
+    <div class="nav-brand">
+        <h2>DishDeck</h2>
+        <span>PREMIUM</span>
+    </div>
+    <ul id="nav-links">
+        <li><a href="#starters">Starters</a></li>
+        <li><a href="#main">Main</a></li>
+        <li><a href="#desserts">Desserts</a></li>
+        <li><a href="#book-table">Tables</a></li>
+        <li><a href="#book-room">Events</a></li>
+        <li id="adminPath" style="display:none;"><a href="admin.html">Admin Panel</a></li>
+        <li><button id="cartBtn" onclick="toggleCart()">🛒 Cart <span class="cart-count" id="cartCount">0</span></button></li>
+        <li><button class="btn-auth" id="authBtn" onclick="handleAuthClick()">Login</button></li>
+    </ul>
+</nav>
+
+<!-- ═══ HERO ════════════════════════════════════════════════════════ -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Taste the<br>Perfection</h1>
+        <p>Premium dining, unforgettable events.</p>
+        <div class="hero-btns">
+            <button class="hero-btn-primary" onclick="document.getElementById('starters').scrollIntoView({behavior:'smooth'})">Explore Menu</button>
+            <button class="hero-btn-outline" onclick="document.getElementById('book-table').scrollIntoView({behavior:'smooth'})">Book a Table</button>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ STARTERS ═════════════════════════════════════════════════════ -->
+<section id="starters">
+    <h2 class="section-title">Starters</h2>
+    <div class="cards" id="starters-container"></div>
+</section>
+
+<!-- ═══ MAIN COURSE ══════════════════════════════════════════════════ -->
+<section id="main" style="background:#0f0f0f;">
+    <h2 class="section-title">Main Course</h2>
+    <div class="cards" id="main-container"></div>
+</section>
+
+<!-- ═══ DESSERTS ═════════════════════════════════════════════════════ -->
+<section id="desserts">
+    <h2 class="section-title">Desserts</h2>
+    <div class="cards" id="desserts-container"></div>
+</section>
+
+<!-- ═══ TABLE BOOKING ════════════════════════════════════════════════ -->
+<section id="book-table" class="booking-section">
+    <h2 class="section-title">Book a Table</h2>
+    <p class="section-sub">Reserve your spot for an exquisite dining experience</p>
+    <div class="booking-grid">
+        <div class="booking-img">
+            <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=800&q=80" alt="Dining Table">
+            <div class="booking-img-badge">
+                <h4>🍽️ Fine Dining</h4>
+                <p>Open 11 AM – 11 PM daily</p>
+            </div>
+        </div>
+        <div class="booking-card">
+            <h3>Reserve Your Table</h3>
+            <p class="bc-sub">Fill the form below and we'll confirm your reservation</p>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>📅 Date</label>
+                    <input type="date" id="tbl-date" min="">
+                </div>
+                <div class="form-group">
+                    <label>⏰ Time</label>
+                    <input type="time" id="tbl-time" min="11:00" max="22:30">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>👥 Number of Guests</label>
+                <select id="tbl-guests">
+                    <option value="1">1 Guest</option>
+                    <option value="2" selected>2 Guests</option>
+                    <option value="3">3 Guests</option>
+                    <option value="4">4 Guests</option>
+                    <option value="6">6 Guests</option>
+                    <option value="8">8 Guests</option>
+                    <option value="10">10 Guests</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>📝 Special Requests (Optional)</label>
+                <textarea id="tbl-req" placeholder="e.g. window seat, wheelchair access, dietary restrictions…"></textarea>
+            </div>
+            <div class="form-group">
+                <label>💳 Payment Method</label>
+                <div class="pay-options" style="margin-bottom:15px;">
+                    <div class="pay-opt active" id="tblPayCard" onclick="selectTblPayment('card')">
+                        <span>💳</span><p>Card</p>
+                    </div>
+                    <div class="pay-opt" id="tblPayUpi" onclick="selectTblPayment('upi')">
+                        <span>📱</span><p>UPI</p>
+                    </div>
+                    <div class="pay-opt" id="tblPayCod" onclick="selectTblPayment('cod')">
+                        <span>💵</span><p>Later</p>
+                    </div>
+                </div>
+            </div>
+            <button class="book-btn" onclick="submitTableBooking()">Confirm Table Booking</button>
+            <div class="book-msg" id="tbl-msg"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ ROOM / EVENT BOOKING ══════════════════════════════════════════ -->
+<section id="book-room" class="booking-section-rooms">
+    <h2 class="section-title">Event Rooms</h2>
+    <p class="section-sub">Celebrate your special occasions in style</p>
+
+    <!-- Room Cards -->
+    <div class="rooms-grid">
+        <div class="room-card" id="room-royal" onclick="selectRoom('Royal Ballroom','https://images.unsplash.com/photo-1620735692151-26a7e0748429?auto=format&fit=crop&w=600&q=80',200)">
+            <img src="https://images.unsplash.com/photo-1620735692151-26a7e0748429?auto=format&fit=crop&w=600&q=80" alt="Royal Ballroom">
+            <div class="room-card-body">
+                <h4>Royal Ballroom</h4>
+                <p>Grand hall with chandeliers, perfect for large celebrations</p>
+                <span class="room-capacity">👥 Up to 200 guests</span>
+            </div>
+        </div>
+        <div class="room-card" id="room-garden" onclick="selectRoom('Garden Terrace','https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=600&q=80',80)">
+            <img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=600&q=80" alt="Garden Terrace">
+            <div class="room-card-body">
+                <h4>Garden Terrace</h4>
+                <p>Open-air terrace with lush greenery and fairy lights</p>
+                <span class="room-capacity">👥 Up to 80 guests</span>
+            </div>
+        </div>
+        <div class="room-card" id="room-private" onclick="selectRoom('Private Lounge','images/private_lounge.png',30)">
+            <img src="images/private_lounge.png" alt="Private Lounge">
+            <div class="room-card-body">
+                <h4>Private Lounge</h4>
+                <p>Intimate setting for small gatherings and celebrations</p>
+                <span class="room-capacity">👥 Up to 30 guests</span>
+            </div>
+        </div>
+        <div class="room-card" id="room-conference" onclick="selectRoom('Executive Suite','https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80',50)">
+            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80" alt="Executive Suite">
+            <div class="room-card-body">
+                <h4>Executive Suite</h4>
+                <p>Professional setting for corporate events and meetings</p>
+                <span class="room-capacity">👥 Up to 50 guests</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Booking Form -->
+    <div style="max-width:700px;margin:0 auto;">
+        <div class="booking-card">
+            <h3>Book Your Event Room</h3>
+            <p class="bc-sub" id="room-selected-name">Select a room above, then fill in the details</p>
+            <input type="hidden" id="room-name-val">
+
+            <div class="form-group">
+                <label>🎉 Event Type</label>
+                <select id="room-event-type">
+                    <option value="">Select Event Type</option>
+                    <option value="Birthday Party">🎂 Birthday Party</option>
+                    <option value="Anniversary">💍 Anniversary</option>
+                    <option value="Wedding Reception">💒 Wedding Reception</option>
+                    <option value="Corporate Event">💼 Corporate Event</option>
+                    <option value="Baby Shower">🍼 Baby Shower</option>
+                    <option value="Graduation Party">🎓 Graduation Party</option>
+                    <option value="Farewell Party">👋 Farewell Party</option>
+                    <option value="Other">✨ Other</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>📅 Date</label>
+                    <input type="date" id="room-date">
+                </div>
+                <div class="form-group">
+                    <label>⏰ Start Time</label>
+                    <input type="time" id="room-time">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>👥 Expected Guests</label>
+                <input type="number" id="room-guests" placeholder="e.g. 50" min="1" max="500">
+            </div>
+            <div class="form-group">
+                <label>📝 Special Requests</label>
+                <textarea id="room-req" placeholder="e.g. theme decorations, DJ setup, vegetarian menu for 20…"></textarea>
+            </div>
+            <div class="form-group">
+                <label>💳 Payment Method</label>
+                <div class="pay-options" style="margin-bottom:15px;">
+                    <div class="pay-opt active" id="roomPayCard" onclick="selectRoomPayment('card')">
+                        <span>💳</span><p>Card</p>
+                    </div>
+                    <div class="pay-opt" id="roomPayUpi" onclick="selectRoomPayment('upi')">
+                        <span>📱</span><p>UPI</p>
+                    </div>
+                    <div class="pay-opt" id="roomPayCod" onclick="selectRoomPayment('cod')">
+                        <span>💵</span><p>Later</p>
+                    </div>
+                </div>
+            </div>
+            <button class="book-btn" onclick="submitRoomBooking()">Book Event Room</button>
+            <div class="book-msg" id="room-msg"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ FOOTER ═══════════════════════════════════════════════════════ -->
+<footer>
+    <div class="footer-brand">DishDeck</div>
+    <p>© 2026 DishDeck Premium Restaurant. All rights reserved.</p>
+</footer>
+
+<!-- ═══ CART DRAWER ══════════════════════════════════════════════════ -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()">
+    <div class="cart-drawer" onclick="event.stopPropagation()">
+        <div class="cart-header">
+            <h3>🛒 Your Cart</h3>
+            <button class="cart-close" onclick="toggleCart()">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <div class="cart-empty">
+                <span>🍽️</span>
+                <p>Your cart is empty</p>
+            </div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total Amount</span>
+                <span class="total-val" id="cartTotal">₹0</span>
+            </div>
+            <button class="checkout-cart-btn" id="checkoutCartBtn" onclick="openCheckout()" disabled>Proceed to Checkout</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ CHECKOUT MODAL ════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="checkoutModal">
+    <div class="checkout-box">
+        <button class="close-modal" onclick="closeCheckout()">&times;</button>
+        <h3>Checkout</h3>
+        <p class="checkout-sub">Review your order and choose a payment method</p>
+
+        <!-- Cart Summary -->
+        <div class="cart-summary" id="checkoutSummary"></div>
+
+        <!-- Payment Methods -->
+        <div class="payment-methods">
+            <label>Choose Payment Method</label>
+            <div class="pay-options">
+                <div class="pay-opt active" id="payCard" onclick="selectPayment('card')">
+                    <span>💳</span><p>Card</p>
+                </div>
+                <div class="pay-opt" id="payUpi" onclick="selectPayment('upi')">
+                    <span>📱</span><p>UPI</p>
+                </div>
+                <div class="pay-opt" id="payCod" onclick="selectPayment('cod')">
+                    <span>💵</span><p>Cash</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Fields -->
+        <div class="pay-fields visible" id="cardFields">
+            <input class="pay-field-input" id="cardName" type="text" placeholder="Cardholder Name">
+            <input class="pay-field-input" id="cardNum" type="text" placeholder="Card Number (16 digits)" maxlength="19">
+            <div class="pay-field-row">
+                <input class="pay-field-input" id="cardExpiry" type="text" placeholder="MM/YY">
+                <input class="pay-field-input" id="cardCvv" type="password" placeholder="CVV">
+            </div>
+        </div>
+
+        <!-- UPI Fields -->
+        <div class="pay-fields" id="upiFields">
+            <input class="pay-field-input" id="upiId" type="text" placeholder="Enter UPI ID (e.g. name@upi)">
+        </div>
+
+        <!-- COD Notice -->
+        <div class="pay-fields" id="codFields">
+            <div class="cod-notice">
+                <strong>Cash on Delivery</strong><br>
+                Pay with cash when your order arrives. No advance payment needed. Our staff will collect the amount at your table / delivery point.
+            </div>
+        </div>
+
+        <button class="pay-now-btn" id="payNowBtn" onclick="processPayment()">Pay Now</button>
+    </div>
+</div>
+
+<!-- ═══ TOAST ════════════════════════════════════════════════════════ -->
+<div class="toast" id="toast">
+    <div class="toast-icon" id="toastIcon">✅</div>
+    <div class="toast-text">
+        <h4 id="toastTitle">Success!</h4>
+        <p id="toastMsg"></p>
+    </div>
+</div>
+
+<script src="backend.js"></script>
+<script>
+// ─── STATE ─────────────────────────────────────────────────────────
+let user = null;
+let cart = [];
+let selectedPayment = 'card';
+let selectedRoom = '';
+let tblPayment = 'card';
+let roomPayment = 'card';
+
+function selectTblPayment(method) {
+    tblPayment = method;
+    ['card','upi','cod'].forEach(m => document.getElementById('tblPay' + m.charAt(0).toUpperCase() + m.slice(1))?.classList.toggle('active', m === method));
+}
+function selectRoomPayment(method) {
+    roomPayment = method;
+    ['card','upi','cod'].forEach(m => document.getElementById('roomPay' + m.charAt(0).toUpperCase() + m.slice(1))?.classList.toggle('active', m === method));
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────
+async function init() {
+    // Set min date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('tbl-date').min = today;
+    document.getElementById('room-date').min = today;
+
+    // Get session user
+    const meRes = await window.api.me();
+    user = meRes.success ? meRes.user : null;
+
+    const authBtn = document.getElementById('authBtn');
+    if(user) {
+        authBtn.innerText = 'Logout';
+        authBtn.style.background = 'transparent';
+        authBtn.style.border = '1px solid rgba(255,255,255,0.2)';
+        authBtn.style.color = '#ccc';
+        if(user.role === 'admin') document.getElementById('adminPath').style.display = 'block';
+    }
+
+    // Load food items
+    const items = await window.api.getFoodItems();
+    renderItems(items, 'starters', 'starters-container');
+    renderItems(items, 'main', 'main-container');
+    renderItems(items, 'desserts', 'desserts-container');
+
+    // Animate cards
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('show'); });
+    }, { threshold: 0.1 });
+    setTimeout(() => document.querySelectorAll('.card').forEach(el => observer.observe(el)), 300);
+
+    // Format card number input
+    document.getElementById('cardNum').addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g,'').replace(/(.{4})/g,'$1 ').trim();
+    });
+}
+
+// ─── RENDER FOOD ITEMS ─────────────────────────────────────────────
+function renderItems(items, category, containerId) {
+    const container = document.getElementById(containerId);
+    const filtered = items.filter(i => i.category === category);
+    if(filtered.length === 0) {
+        container.innerHTML = '<p style="color:#555;text-align:center;width:100%;padding:20px;">No items yet. Check back soon!</p>';
+        return;
+    }
+    container.innerHTML = filtered.map(item => `
+        <div class="card">
+            <img src="${item.image}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=500&q=60'">
+            <div class="card-content">
+                <h3>${item.name}</h3>
+                <p class="price">₹${item.price}</p>
+                <button class="add-cart-btn" id="btn-${item.id}" onclick='addToCart(${JSON.stringify(item)})'>+ Add to Cart</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ─── CART ──────────────────────────────────────────────────────────
+function addToCart(item) {
+    if(!user) {
+        showToast('👤', 'Login Required', 'Please login to add items to cart.');
+        setTimeout(() => window.location.href = 'login.html', 1500);
+        return;
+    }
+    const existing = cart.find(c => c.id === item.id);
+    if(existing) {
+        existing.qty++;
+    } else {
+        cart.push({ ...item, qty: 1 });
+    }
+    updateCartUI();
+    const btn = document.getElementById('btn-' + item.id);
+    if(btn) { btn.textContent = '✓ Added'; btn.classList.add('added'); setTimeout(() => { btn.textContent = '+ Add to Cart'; btn.classList.remove('added'); }, 1500); }
+    showToast('🛒', 'Added to Cart', `${item.name} added successfully!`);
+}
+
+function updateCartUI() {
+    const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
+    const count = cart.reduce((s, c) => s + c.qty, 0);
+    document.getElementById('cartCount').textContent = count;
+    document.getElementById('cartTotal').textContent = '₹' + total;
+    document.getElementById('checkoutCartBtn').disabled = cart.length === 0;
+    renderCartItems();
+}
+
+function renderCartItems() {
+    const container = document.getElementById('cartItems');
+    if(cart.length === 0) {
+        container.innerHTML = '<div class="cart-empty"><span>🍽️</span><p>Your cart is empty</p></div>';
+        return;
+    }
+    container.innerHTML = cart.map(item => `
+        <div class="cart-item">
+            <img src="${item.image}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=100&q=60'">
+            <div class="cart-item-info">
+                <div class="cart-item-name">${item.name}</div>
+                <div class="cart-item-price">₹${item.price} × ${item.qty}</div>
+                <div class="cart-item-controls">
+                    <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+                    <span class="qty-num">${item.qty}</span>
+                    <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+                    <button class="remove-btn" onclick="removeFromCart(${item.id})">🗑</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function changeQty(id, delta) {
+    const item = cart.find(c => c.id === id);
+    if(!item) return;
+    item.qty += delta;
+    if(item.qty <= 0) removeFromCart(id);
+    else updateCartUI();
+}
+
+function removeFromCart(id) {
+    cart = cart.filter(c => c.id !== id);
+    updateCartUI();
+}
+
+function toggleCart() {
+    document.getElementById('cartOverlay').classList.toggle('active');
+}
+
+// ─── CHECKOUT ─────────────────────────────────────────────────────
+function openCheckout() {
+    if(cart.length === 0) return;
+    const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
+    const summaryHTML = cart.map(i => `
+        <div class="cart-summary-item">
+            <span>${i.name} × ${i.qty}</span>
+            <span>₹${i.price * i.qty}</span>
+        </div>
+    `).join('') + `<div class="cart-summary-total"><span>Total</span><span>₹${total}</span></div>`;
+    document.getElementById('checkoutSummary').innerHTML = summaryHTML;
+    document.getElementById('cartOverlay').classList.remove('active');
+    document.getElementById('checkoutModal').classList.add('active');
+}
+
+function closeCheckout() {
+    document.getElementById('checkoutModal').classList.remove('active');
+}
+
+function selectPayment(method) {
+    selectedPayment = method;
+    ['card','upi','cod'].forEach(m => {
+        document.getElementById('pay' + m.charAt(0).toUpperCase() + m.slice(1))?.classList.toggle('active', m === method);
+        document.getElementById(m + 'Fields')?.classList.toggle('visible', m === method);
+    });
+    const btn = document.getElementById('payNowBtn');
+    btn.textContent = method === 'cod' ? '✅ Place Order (Pay on Delivery)' : 'Pay Now';
+}
+
+async function processPayment() {
+    if(cart.length === 0) return;
+    const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
+    const btn = document.getElementById('payNowBtn');
+    btn.textContent = 'Processing…';
+    btn.disabled = true;
+
+    const res = await window.api.placeOrder(cart, total, selectedPayment);
+    btn.disabled = false;
+    selectPayment(selectedPayment);
+
+    if(res.success) {
+        closeCheckout();
+        cart = [];
+        updateCartUI();
+        showToast('✅', 'Order Confirmed!', res.message);
+    } else {
+        showToast('❌', 'Error', res.message || 'Something went wrong.');
+    }
+}
+
+// ─── TABLE BOOKING ─────────────────────────────────────────────────
+async function submitTableBooking() {
+    if(!user) { showToast('👤','Login Required','Please login to book a table.'); setTimeout(()=>window.location.href='login.html',1500); return; }
+    const date = document.getElementById('tbl-date').value;
+    const time = document.getElementById('tbl-time').value;
+    const guests = document.getElementById('tbl-guests').value;
+    const req = document.getElementById('tbl-req').value;
+    const msgEl = document.getElementById('tbl-msg');
+
+    if(!date || !time) { msgEl.textContent = 'Please select date and time.'; msgEl.className = 'book-msg error'; return; }
+    msgEl.textContent = 'Booking…'; msgEl.className = 'book-msg';
+
+    const res = await window.api.bookTable({ guests, booking_date: date, booking_time: time, special_req: req, payment_method: tblPayment });
+    if(res.success) {
+        msgEl.textContent = res.message;
+        msgEl.className = 'book-msg success';
+        document.getElementById('tbl-date').value = '';
+        document.getElementById('tbl-time').value = '';
+        document.getElementById('tbl-req').value = '';
+        showToast('🍽️', 'Table Booked!', res.message);
+    } else {
+        msgEl.textContent = res.message;
+        msgEl.className = 'book-msg error';
+    }
+}
+
+// ─── ROOM BOOKING ──────────────────────────────────────────────────
+function selectRoom(name, img, capacity) {
+    selectedRoom = name;
+    document.getElementById('room-name-val').value = name;
+    document.getElementById('room-selected-name').textContent = `Selected: ${name} (up to ${capacity} guests)`;
+    document.querySelectorAll('.room-card').forEach(c => c.classList.remove('selected'));
+    const cards = {'Royal Ballroom':'room-royal','Garden Terrace':'room-garden','Private Lounge':'room-private','Executive Suite':'room-conference'};
+    if(cards[name]) document.getElementById(cards[name]).classList.add('selected');
+}
+
+async function submitRoomBooking() {
+    if(!user) { showToast('👤','Login Required','Please login to book a room.'); setTimeout(()=>window.location.href='login.html',1500); return; }
+    const event_type = document.getElementById('room-event-type').value;
+    const room_name = document.getElementById('room-name-val').value;
+    const date = document.getElementById('room-date').value;
+    const time = document.getElementById('room-time').value;
+    const guests = document.getElementById('room-guests').value;
+    const req = document.getElementById('room-req').value;
+    const msgEl = document.getElementById('room-msg');
+
+    if(!event_type || !date || !time || !guests) { msgEl.textContent = 'Please fill all required fields.'; msgEl.className = 'book-msg error'; return; }
+    msgEl.textContent = 'Booking…'; msgEl.className = 'book-msg';
+
+    const res = await window.api.bookRoom({ event_type, room_name, guests, booking_date: date, booking_time: time, special_req: req, payment_method: roomPayment });
+    if(res.success) {
+        msgEl.textContent = res.message;
+        msgEl.className = 'book-msg success';
+        ['room-event-type','room-date','room-time','room-guests','room-req'].forEach(id => document.getElementById(id).value = '');
+        document.querySelectorAll('.room-card').forEach(c => c.classList.remove('selected'));
+        selectedRoom = '';
+        document.getElementById('room-selected-name').textContent = 'Select a room above, then fill in the details';
+        showToast('🎉', 'Room Booked!', res.message);
+    } else {
+        msgEl.textContent = res.message;
+        msgEl.className = 'book-msg error';
+    }
+}
+
+// ─── AUTH ──────────────────────────────────────────────────────────
+async function handleAuthClick() {
+    if(user) {
+        await window.api.logout();
+        window.location.reload();
+    } else {
+        window.location.href = 'login.html';
+    }
+}
+
+// ─── TOAST ─────────────────────────────────────────────────────────
+function showToast(icon, title, msg) {
+    document.getElementById('toastIcon').textContent = icon;
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastMsg').textContent = msg;
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

@@ -46,10 +46,15 @@ async function initDB() {
     });
 
     // Create tables
+    await db.query("DROP TABLE IF EXISTS users");
+    await db.query("DROP TABLE IF EXISTS table_bookings");
+    await db.query("DROP TABLE IF EXISTS room_bookings");
+
     await db.query(`
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
             username VARCHAR(100) UNIQUE NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL,
             role ENUM('admin','user') DEFAULT 'user',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -89,6 +94,7 @@ async function initDB() {
             booking_date DATE NOT NULL,
             booking_time TIME NOT NULL,
             special_req VARCHAR(500),
+            payment_method VARCHAR(50) DEFAULT 'card',
             status VARCHAR(50) DEFAULT 'confirmed',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -105,17 +111,18 @@ async function initDB() {
             booking_date DATE NOT NULL,
             booking_time TIME NOT NULL,
             special_req VARCHAR(500),
+            payment_method VARCHAR(50) DEFAULT 'card',
             status VARCHAR(50) DEFAULT 'confirmed',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `);
 
     // Seed admin user
-    const [admins] = await db.query("SELECT id FROM users WHERE username='admin'");
+    const [admins] = await db.query("SELECT id FROM users WHERE username='RaghavaP'");
     if (admins.length === 0) {
-        const hashed = await bcrypt.hash('password', 10);
-        await db.query("INSERT INTO users (username, password, role) VALUES (?, ?, 'admin')", ['admin', hashed]);
-        console.log('✅ Admin user created: admin / password');
+        const hashed = await bcrypt.hash('RaghavaP', 10);
+        await db.query("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'admin')", ['RaghavaP', 'raghava.p@gmail.com', hashed]);
+        console.log('✅ Admin user created: RaghavaP / raghava.p@gmail.com / RaghavaP');
     }
 
     // Seed demo food items
@@ -168,15 +175,15 @@ const requireAdmin = (req, res, next) => {
 // ─── AUTH ROUTES ──────────────────────────────────────────────────────────────
 app.post('/api/auth/register', async (req, res) => {
     try {
-        const { username, password } = req.body;
-        if (!username || !password) return res.json({ success: false, message: 'Fill all fields' });
+        const { username, email, password } = req.body;
+        if (!username || !email || !password) return res.json({ success: false, message: 'Fill all fields' });
 
-        const [existing] = await db.query('SELECT id FROM users WHERE username=?', [username]);
-        if (existing.length > 0) return res.json({ success: false, message: 'Username already taken' });
+        const [existing] = await db.query('SELECT id FROM users WHERE username=? OR email=?', [username, email]);
+        if (existing.length > 0) return res.json({ success: false, message: 'username is incorrect or password is incorrect' });
 
         const hashed = await bcrypt.hash(password, 10);
-        const [result] = await db.query("INSERT INTO users (username, password, role) VALUES (?,?,'user')", [username, hashed]);
-        const user = { id: result.insertId, username, role: 'user' };
+        const [result] = await db.query("INSERT INTO users (username, email, password, role) VALUES (?,?,?,'user')", [username, email, hashed]);
+        const user = { id: result.insertId, username, email, role: 'user' };
         req.session.user = user;
         res.json({ success: true, user });
     } catch (e) {
@@ -187,15 +194,15 @@ app.post('/api/auth/register', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
     try {
-        const { username, password } = req.body;
-        const [rows] = await db.query('SELECT * FROM users WHERE username=?', [username]);
-        if (rows.length === 0) return res.json({ success: false, message: 'Invalid credentials' });
+        const { username, email, password } = req.body;
+        const [rows] = await db.query('SELECT * FROM users WHERE username=? AND email=?', [username, email]);
+        if (rows.length === 0) return res.json({ success: false, message: 'username is incorrect or password is incorrect' });
 
         const user = rows[0];
         const match = await bcrypt.compare(password, user.password);
-        if (!match) return res.json({ success: false, message: 'Invalid credentials' });
+        if (!match) return res.json({ success: false, message: 'username is incorrect or password is incorrect' });
 
-        const sessionUser = { id: user.id, username: user.username, role: user.role };
+        const sessionUser = { id: user.id, username: user.username, email: user.email, role: user.role };
         req.session.user = sessionUser;
         res.json({ success: true, user: sessionUser });
     } catch (e) {
@@ -286,16 +293,16 @@ app.get('/api/orders', requireAdmin, async (req, res) => {
 // ─── TABLE BOOKING ROUTES ─────────────────────────────────────────────────────
 app.post('/api/bookings/table', requireAuth, async (req, res) => {
     try {
-        const { guests, booking_date, booking_time, special_req } = req.body;
+        const { guests, booking_date, booking_time, special_req, payment_method } = req.body;
         const user = req.session.user;
         if (!guests || !booking_date || !booking_time) {
             return res.json({ success: false, message: 'Please fill all required fields' });
         }
         await db.query(
-            'INSERT INTO table_bookings (user_id, username, guests, booking_date, booking_time, special_req) VALUES (?,?,?,?,?,?)',
-            [user.id, user.username, guests, booking_date, booking_time, special_req || '']
+            'INSERT INTO table_bookings (user_id, username, guests, booking_date, booking_time, special_req, payment_method) VALUES (?,?,?,?,?,?,?)',
+            [user.id, user.username, guests, booking_date, booking_time, special_req || '', payment_method || 'card']
         );
-        res.json({ success: true, message: `Table booked for ${guests} guests on ${booking_date} at ${booking_time}!` });
+        res.json({ success: true, message: `Table booked for ${guests} guests on ${booking_date} at ${booking_time}! Payment via ${payment_method || 'card'}.` });
     } catch (e) {
         console.error(e);
         res.json({ success: false, message: 'Server error' });
@@ -310,16 +317,16 @@ app.get('/api/bookings/table', requireAdmin, async (req, res) => {
 // ─── ROOM BOOKING ROUTES ──────────────────────────────────────────────────────
 app.post('/api/bookings/room', requireAuth, async (req, res) => {
     try {
-        const { event_type, room_name, guests, booking_date, booking_time, special_req } = req.body;
+        const { event_type, room_name, guests, booking_date, booking_time, special_req, payment_method } = req.body;
         const user = req.session.user;
         if (!event_type || !guests || !booking_date || !booking_time) {
             return res.json({ success: false, message: 'Please fill all required fields' });
         }
         await db.query(
-            'INSERT INTO room_bookings (user_id, username, event_type, room_name, guests, booking_date, booking_time, special_req) VALUES (?,?,?,?,?,?,?,?)',
-            [user.id, user.username, event_type, room_name || '', guests, booking_date, booking_time, special_req || '']
+            'INSERT INTO room_bookings (user_id, username, event_type, room_name, guests, booking_date, booking_time, special_req, payment_method) VALUES (?,?,?,?,?,?,?,?,?)',
+            [user.id, user.username, event_type, room_name || '', guests, booking_date, booking_time, special_req || '', payment_method || 'card']
         );
-        res.json({ success: true, message: `${event_type} room booked for ${guests} guests on ${booking_date}!` });
+        res.json({ success: true, message: `${event_type} room booked for ${guests} guests on ${booking_date}! Payment via ${payment_method || 'card'}.` });
     } catch (e) {
         console.error(e);
         res.json({ success: false, message: 'Server error' });

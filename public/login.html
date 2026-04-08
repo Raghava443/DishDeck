@@ -93,6 +93,10 @@
             <input type="text" id="username" placeholder="Enter your username" autocomplete="username">
         </div>
         <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="Enter your email" autocomplete="email">
+        </div>
+        <div class="input-group">
             <label>Password</label>
             <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleAuth()">
         </div>
@@ -100,7 +104,7 @@
         <p class="toggle-text" id="toggle-text">
             Don't have an account? <span onclick="toggleMode()">Sign Up</span>
         </p>
-        <a class="back-link" href="index.html">← Back to Home</a>
+        <a class="back-link" href="home.html">← Back to Home</a>
     </div>
 
     <script src="backend.js"></script>
@@ -116,16 +120,18 @@
                 : `Already have an account? <span onclick="toggleMode()">Login</span>`;
             document.getElementById('error-msg').style.display = 'none';
             document.getElementById('username').value = '';
+            document.getElementById('email').value = '';
             document.getElementById('password').value = '';
         }
 
         async function handleAuth() {
             const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value.trim();
             const errorEl = document.getElementById('error-msg');
             const btn = document.getElementById('submit-btn');
 
-            if(!username || !password) {
+            if(!username || !email || !password) {
                 errorEl.textContent = 'Please fill in all fields.';
                 errorEl.style.display = 'block';
                 return;
@@ -142,17 +148,17 @@
 
             try {
                 if(isLogin) {
-                    const res = await window.api.login(username, password);
+                    const res = await window.api.login(username, email, password);
                     if(res.success) {
-                        window.location.href = res.user.role === 'admin' ? 'admin.html' : 'index.html';
+                        window.location.href = res.user.role === 'admin' ? 'admin.html' : 'home.html';
                     } else {
-                        errorEl.textContent = res.message || 'Invalid credentials.';
+                        errorEl.textContent = res.message || 'username is incorrect or password is incorrect';
                         errorEl.style.display = 'block';
                     }
                 } else {
-                    const res = await window.api.register(username, password);
+                    const res = await window.api.register(username, email, password);
                     if(res.success) {
-                        window.location.href = 'index.html';
+                        window.location.href = 'home.html';
                     } else {
                         errorEl.textContent = res.message || 'Registration failed.';
                         errorEl.style.display = 'block';
@@ -171,7 +177,7 @@
         (async () => {
             const res = await window.api.me().catch(() => null);
             if(res && res.success) {
-                window.location.href = res.user.role === 'admin' ? 'admin.html' : 'index.html';
+                window.location.href = res.user.role === 'admin' ? 'admin.html' : 'home.html';
             }
         })();
     </script>

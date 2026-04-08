@@ -5,22 +5,22 @@ const API_BASE = 'http://localhost:3000';
 
 window.api = {
     // ── AUTH ──────────────────────────────────────────────────────────────────
-    async login(username, password) {
+    async login(username, email, password) {
         const res = await fetch(`${API_BASE}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, email, password })
         });
         return res.json();
     },
 
-    async register(username, password) {
+    async register(username, email, password) {
         const res = await fetch(`${API_BASE}/api/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, email, password })
         });
         return res.json();
     },
