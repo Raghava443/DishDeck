@@ -1,7 +1,7 @@
 // DishDeck API Client — calls real Express backend
 // All pages use window.api.* (same interface as before)
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = window.location.origin.includes('github.io') ? 'https://d17b1859c974e0.lhr.life' : '';
 
 window.api = {
     // ── AUTH ──────────────────────────────────────────────────────────────────
