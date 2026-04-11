@@ -60,6 +60,13 @@ async function initDB() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `);
+    
+    try {
+        await db.query("ALTER TABLE users ADD COLUMN profile_pic VARCHAR(255) DEFAULT 'images/default_avatar.svg'");
+        await db.query("ALTER TABLE users ADD COLUMN full_name VARCHAR(100) DEFAULT ''");
+        await db.query("ALTER TABLE users ADD COLUMN phone VARCHAR(50) DEFAULT ''");
+        await db.query("ALTER TABLE users ADD COLUMN address VARCHAR(500) DEFAULT ''");
+    } catch(e) {} // Ignore if existing
 
     await db.query(`
         CREATE TABLE IF NOT EXISTS food_items (
@@ -183,7 +190,7 @@ app.post('/api/auth/register', async (req, res) => {
 
         const hashed = await bcrypt.hash(password, 10);
         const [result] = await db.query("INSERT INTO users (username, email, password, role) VALUES (?,?,?,'user')", [username, email, hashed]);
-        const user = { id: result.insertId, username, email, role: 'user' };
+        const user = { id: result.insertId, username, email, role: 'user', profile_pic: 'images/default_avatar.svg', full_name: '', phone: '', address: '' };
         req.session.user = user;
         res.json({ success: true, user });
     } catch (e) {
@@ -202,7 +209,7 @@ app.post('/api/auth/login', async (req, res) => {
         const match = await bcrypt.compare(password, user.password);
         if (!match) return res.json({ success: false, message: 'username is incorrect or password is incorrect' });
 
-        const sessionUser = { id: user.id, username: user.username, email: user.email, role: user.role };
+        const sessionUser = { id: user.id, username: user.username, email: user.email, role: user.role, profile_pic: user.profile_pic, full_name: user.full_name, phone: user.phone, address: user.address };
         req.session.user = sessionUser;
         res.json({ success: true, user: sessionUser });
     } catch (e) {
@@ -215,11 +222,54 @@ app.post('/api/auth/logout', (req, res) => {
     req.session.destroy(() => res.json({ success: true }));
 });
 
-app.get('/api/auth/me', (req, res) => {
+app.get('/api/auth/me', async (req, res) => {
     if (req.session.user) {
-        res.json({ success: true, user: req.session.user });
-    } else {
-        res.json({ success: false });
+        try {
+            const [rows] = await db.query('SELECT id, username, email, role, profile_pic, full_name, phone, address FROM users WHERE id=?', [req.session.user.id]);
+            if (rows.length > 0) {
+                req.session.user = rows[0];
+                return res.json({ success: true, user: rows[0] });
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    res.json({ success: false });
+});
+
+// ─── USER PROFILE ROUTES ──────────────────────────────────────────────────────
+app.post('/api/user/profile', requireAuth, upload.single('profile_pic'), async (req, res) => {
+    try {
+        const { full_name, phone, address } = req.body;
+        let updateQuery = 'UPDATE users SET full_name=?, phone=?, address=?';
+        let queryParams = [full_name || '', phone || '', address || ''];
+
+        if (req.file) {
+            const imageUrl = '/uploads/' + req.file.filename;
+            updateQuery += ', profile_pic=?';
+            queryParams.push(imageUrl);
+        }
+        
+        updateQuery += ' WHERE id=?';
+        queryParams.push(req.session.user.id);
+        
+        await db.query(updateQuery, queryParams);
+        const [rows] = await db.query('SELECT id, username, email, role, profile_pic, full_name, phone, address FROM users WHERE id=?', [req.session.user.id]);
+        req.session.user = rows[0];
+        res.json({ success: true, user: rows[0] });
+    } catch (e) {
+        console.error(e);
+        res.json({ success: false, message: 'Server error' });
+    }
+});
+
+app.get('/api/user/orders', requireAuth, async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM orders WHERE user_id=? ORDER BY created_at DESC', [req.session.user.id]);
+        res.json({ success: true, orders: rows });
+    } catch (e) {
+        console.error(e);
+        res.json({ success: false, message: 'Server error' });
     }
 });
 

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile | DishDeck</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Outfit',sans-serif;}
+body{background:#0d0d0d;color:#fff;overflow-x:hidden;}
+
+/* ─── SCROLLBAR ─────────────────── */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:#111;}
+::-webkit-scrollbar-thumb{background:#f4c430;border-radius:3px;}
+
+/* ─── NAVBAR (Simplified) ───────── */
+nav{
+    position:fixed;top:0;width:100%;
+    background:rgba(10,10,10,0.92);padding:14px 40px;
+    display:flex;justify-content:space-between;align-items:center;
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    z-index:1000;border-bottom:1px solid rgba(244,196,48,0.15);
+}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-brand h2{color:#f4c430;font-size:1.9rem;font-weight:800;letter-spacing:1px;}
+.nav-brand span{font-size:.75rem;background:#f4c430;color:#000;padding:2px 8px;border-radius:20px;font-weight:700;}
+.back-home{color:#ccc;text-decoration:none;font-weight:600;transition:.3s;}
+.back-home:hover{color:#f4c430;}
+
+/* ─── LAYOUT & TABS ─────────────── */
+.container{max-width:1000px;margin:120px auto 50px;padding:0 20px;}
+.header{display:flex;align-items:center;gap:20px;margin-bottom:40px;padding-bottom:30px;border-bottom:1px solid #222;}
+.profile-pic-lg{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #f4c430;}
+.header-info h1{font-size:2.2rem;color:#f4c430;}
+.header-info p{color:#888;}
+
+.tabs{display:flex;gap:15px;margin-bottom:30px;}
+.tab-btn{
+    background:#1a1a1a;border:1px solid #333;color:#ccc;
+    padding:12px 24px;border-radius:10px;cursor:pointer;
+    font-weight:600;transition:.3s;font-size:1.05rem;
+}
+.tab-btn:hover{border-color:#f4c430;color:#fff;}
+.tab-btn.active{background:rgba(244,196,48,0.1);border-color:#f4c430;color:#f4c430;}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;animation:fadeUp 0.4s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── INFO FORM ─────────────────── */
+.form-card{
+    background:#141414;padding:30px;border-radius:16px;
+    border:1px solid #252525;
+}
+.form-group{margin-bottom:20px;}
+.form-group label{display:block;margin-bottom:8px;color:#bbb;font-size:.95rem;}
+.form-group input, .form-group textarea{
+    width:100%;padding:14px;background:#1a1a1a;border:1px solid #333;
+    color:#fff;border-radius:10px;outline:none;transition:.3s;
+}
+.form-group input:focus, .form-group textarea:focus{border-color:#f4c430;}
+.form-group input[type="file"]{padding:10px;}
+.save-btn{
+    background:linear-gradient(135deg,#f4c430,#e6a800);color:#000;
+    font-weight:700;border:none;padding:14px 30px;border-radius:10px;
+    cursor:pointer;font-size:1.05rem;transition:.3s;margin-top:10px;
+}
+.save-btn:hover{box-shadow:0 8px 25px rgba(244,196,48,0.3);}
+
+/* ─── ACTIVITY ──────────────────── */
+.activity-card{
+    background:#141414;border-radius:16px;border:1px solid #252525;
+    padding:25px;margin-bottom:20px;
+}
+.ac-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:1px dashed #333;padding-bottom:15px;}
+.ac-date{color:#aaa;}
+.ac-status{padding:4px 10px;border-radius:6px;font-size:.85rem;font-weight:700;text-transform:uppercase;background:rgba(244,196,48,0.1);color:#f4c430;}
+.ac-items{display:flex;flex-direction:column;gap:10px;margin-bottom:15px;}
+.ac-item{display:flex;justify-content:space-between;background:#1a1a1a;padding:12px 16px;border-radius:8px;}
+.ac-total{text-align:right;font-size:1.2rem;font-weight:700;color:#f4c430;border-top:1px dashed #333;padding-top:15px;}
+.empty-state{text-align:center;padding:50px;color:#666;}
+.empty-state span{font-size:3rem;display:block;margin-bottom:15px;}
+
+/* ─── TOAST ─────────────────────── */
+.toast{
+    position:fixed;bottom:30px;right:30px;z-index:9999;
+    background:#1e1e1e;border:1px solid rgba(244,196,48,0.3);
+    border-radius:14px;padding:16px 22px;display:flex;align-items:center;gap:14px;
+    transform:translateY(100px);opacity:0;transition:.4s;
+}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast-icon{font-size:1.8rem;}
+.toast-text h4{font-size:.95rem;font-weight:700;margin-bottom:2px;}
+.toast-text p{font-size:.82rem;color:#999;}
+</style>
+</head>
+<body>
+
+<nav>
+    <a href="home.html" class="nav-brand">
+        <h2>DishDeck</h2><span>PREMIUM</span>
+    </a>
+    <a href="home.html" class="back-home">← Back to Home</a>
+</nav>
+
+<div class="container">
+    <div class="header">
+        <img src="images/default_avatar.svg" id="displayPic" class="profile-pic-lg">
+        <div class="header-info">
+            <h1 id="displayName">My Profile</h1>
+            <p id="displayEmail">loading...</p>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('info')">My Info</button>
+        <button class="tab-btn" onclick="switchTab('activity')">Activity History</button>
+    </div>
+
+    <!-- My Info Tab -->
+    <div id="tab-info" class="tab-content active">
+        <div class="form-card">
+            <form id="profileForm" onsubmit="handleProfileSave(event)">
+                <div class="form-group">
+                    <label>Profile Picture</label>
+                    <input type="file" id="updPic" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="updName" placeholder="Enter your full name">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="updPhone" placeholder="Enter your phone number">
+                </div>
+                <div class="form-group">
+                    <label>Delivery Address</label>
+                    <textarea id="updAddress" rows="3" placeholder="Enter your default delivery address"></textarea>
+                </div>
+                <button type="submit" class="save-btn" id="saveBtn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Activity Tab -->
+    <div id="tab-activity" class="tab-content">
+        <div id="activityContainer">
+            <div class="empty-state">
+                <span>⏳</span>
+                <p>Loading activity...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast">
+    <div class="toast-icon">✅</div>
+    <div class="toast-text"><h4 id="toastTitle">Success</h4><p id="toastMsg">Updated</p></div>
+</div>
+
+<script src="backend.js"></script>
+<script>
+let currentUser = null;
+
+async function initProfile() {
+    const res = await window.api.me();
+    if(!res.success || !res.user) {
+        window.location.href = 'login.html';
+        return;
+    }
+    currentUser = res.user;
+    
+    // Populate header
+    document.getElementById('displayName').textContent = currentUser.full_name || currentUser.username;
+    document.getElementById('displayEmail').textContent = currentUser.email;
+    if(currentUser.profile_pic) document.getElementById('displayPic').src = currentUser.profile_pic;
+
+    // Populate form
+    document.getElementById('updName').value = currentUser.full_name || '';
+    document.getElementById('updPhone').value = currentUser.phone || '';
+    document.getElementById('updAddress').value = currentUser.address || '';
+
+    // Load orders
+    loadActivity();
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+}
+
+async function handleProfileSave(e) {
+    e.preventDefault();
+    const btn = document.getElementById('saveBtn');
+    btn.textContent = 'Saving...';
+    btn.disabled = true;
+
+    const fd = new FormData();
+    fd.append('full_name', document.getElementById('updName').value);
+    fd.append('phone', document.getElementById('updPhone').value);
+    fd.append('address', document.getElementById('updAddress').value);
+    const picFile = document.getElementById('updPic').files[0];
+    if(picFile) fd.append('profile_pic', picFile);
+
+    const res = await window.api.updateProfile(fd);
+    btn.textContent = 'Save Changes';
+    btn.disabled = false;
+
+    if(res.success) {
+        showToast('✅', 'Profile Updated', 'Your information has been saved successfully.');
+        currentUser = res.user;
+        document.getElementById('displayName').textContent = currentUser.full_name || currentUser.username;
+        if(currentUser.profile_pic) document.getElementById('displayPic').src = currentUser.profile_pic;
+    } else {
+        showToast('❌', 'Error', res.message || 'Failed to update profile.');
+    }
+}
+
+async function loadActivity() {
+    const res = await window.api.getMyOrders();
+    const container = document.getElementById('activityContainer');
+    if(!res.success || !res.orders || res.orders.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <span>🍽️</span>
+                <p>No past orders found. Time to explore our menu!</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = res.orders.map(order => {
+        const items = JSON.parse(order.items);
+        const dateStr = new Date(order.created_at).toLocaleString();
+        
+        let itemsHtml = items.map(item => `
+            <div class="ac-item">
+                <span>${item.qty} × ${item.name}</span>
+                <span>₹${item.price * item.qty}</span>
+            </div>
+        `).join('');
+
+        return `
+            <div class="activity-card">
+                <div class="ac-header">
+                    <span class="ac-date">📅 ${dateStr}</span>
+                    <span class="ac-status">${order.status}</span>
+                </div>
+                <div class="ac-items">${itemsHtml}</div>
+                <div class="ac-total">Total: ₹${order.total}</div>
+                <p style="text-align:right; font-size:0.85rem; color:#777; margin-top:5px;">via ${order.payment_method}</p>
+            </div>
+        `;
+    }).join('');
+}
+
+function showToast(icon, title, msg) {
+    document.querySelector('.toast-icon').textContent = icon;
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastMsg').textContent = msg;
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+window.onload = initProfile;
+</script>
+</body>
+</html>

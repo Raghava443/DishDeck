@@ -34,6 +34,21 @@ window.api = {
         return res.json();
     },
 
+    // ── USER PROFILE ──────────────────────────────────────────────────────────
+    async updateProfile(formData) {
+        const res = await fetch(`${API_BASE}/api/user/profile`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+        });
+        return res.json();
+    },
+
+    async getMyOrders() {
+        const res = await fetch(`${API_BASE}/api/user/orders`, { credentials: 'include' });
+        return res.json();
+    },
+
     // ── FOOD ──────────────────────────────────────────────────────────────────
     async getFoodItems() {
         const res = await fetch(`${API_BASE}/api/food`, { credentials: 'include' });
